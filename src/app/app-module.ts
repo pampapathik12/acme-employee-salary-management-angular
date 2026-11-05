@@ -11,6 +11,8 @@ import { App } from './app';
 import { LayoutModule } from './layout/layout-module';
 import { authInterceptor } from './core/interceptors/auth-interceptor';
 import { errorInterceptor } from './core/interceptors/error-interceptor';
+import { loadingInterceptor } from './core/interceptors/loading-interceptor';
+import { SharedModule } from './shared/shared-module';
 
 @NgModule({
   declarations: [
@@ -20,12 +22,13 @@ import { errorInterceptor } from './core/interceptors/error-interceptor';
     BrowserModule,
     AppRoutingModule,
     LayoutModule,
+    SharedModule,
     ToastModule,
     ConfirmDialogModule,
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor])),
     providePrimeNG({ theme: { preset: Aura, options: { darkModeSelector: 'none' } } }),
     MessageService,
     ConfirmationService,

@@ -1,1 +1,5 @@
-<p>loading-spinner works!</p>
+@if (isSpinning()) {
+  <div class="global-spinner" role="status" aria-live="polite" aria-busy="true">
+    <p-progressspinner ariaLabel="Loading" />
+  </div>
+}

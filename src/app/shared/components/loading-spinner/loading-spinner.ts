@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Loading } from '../../../core/services/loading';
 
 @Component({
   selector: 'app-loading-spinner',
@@ -6,4 +7,6 @@ import { Component } from '@angular/core';
   styleUrl: './loading-spinner.css',
   templateUrl: './loading-spinner.html',
 })
-export class LoadingSpinner {}
+export class LoadingSpinner {
+  protected readonly isSpinning = inject(Loading).isSpinning;
+}
