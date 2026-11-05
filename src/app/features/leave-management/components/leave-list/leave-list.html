@@ -16,16 +16,6 @@
     </div>
   </div>
 
-  @if (auth.canAccess('employees') && auth.userId === null) {
-    <div class="form-field">
-      <label for="leave-approver">Approver ID *</label>
-      <input pInputText id="leave-approver" type="number" [formControl]="approverId" min="1" step="1" class="w-full" />
-      @if (approverId.touched && approverId.invalid) {
-        <small class="p-error">Enter a valid approver ID.</small>
-      }
-    </div>
-  }
-
   @if (error()) {
     <p-message severity="error" [closable]="false">{{ error() }}</p-message>
   }

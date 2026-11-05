@@ -48,12 +48,12 @@ export class LeaveService {
     return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/updateLeave/${id}`, body);
   }
 
-  approve(id: number, approvedBy: number): Observable<LeaveResponse> {
-    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/approveLeave/${id}`, null, { approvedBy });
+  approve(id: number): Observable<LeaveResponse> {
+    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/approveLeave/${id}`);
   }
 
-  reject(id: number, approvedBy: number): Observable<LeaveResponse> {
-    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/rejectLeave/${id}`, null, { approvedBy });
+  reject(id: number): Observable<LeaveResponse> {
+    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/rejectLeave/${id}`);
   }
 
   delete(id: number): Observable<void> {

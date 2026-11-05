@@ -97,8 +97,8 @@ const contracts: ContractCase[] = [
   { name: 'filter leaves', invoke: () => TestBed.inject(LeaveService).listForEmployee(4), method: 'GET', path: '/api/leaves/getLeavesByEmployeeId/4' },
   { name: 'apply leave', invoke: () => TestBed.inject(LeaveService).create(leave), method: 'POST', path: '/api/leaves/applyLeave', body: leave },
   { name: 'update leave', invoke: () => TestBed.inject(LeaveService).update(7, leave), method: 'PUT', path: '/api/leaves/updateLeave/7', body: leave },
-  { name: 'approve leave', invoke: () => TestBed.inject(LeaveService).approve(7, 2), method: 'PUT', path: '/api/leaves/approveLeave/7', params: { approvedBy: '2' } },
-  { name: 'reject leave', invoke: () => TestBed.inject(LeaveService).reject(7, 2), method: 'PUT', path: '/api/leaves/rejectLeave/7', params: { approvedBy: '2' } },
+  { name: 'approve leave', invoke: () => TestBed.inject(LeaveService).approve(7), method: 'PUT', path: '/api/leaves/approveLeave/7' },
+  { name: 'reject leave', invoke: () => TestBed.inject(LeaveService).reject(7), method: 'PUT', path: '/api/leaves/rejectLeave/7' },
   { name: 'delete leave', invoke: () => TestBed.inject(LeaveService).delete(7), method: 'DELETE', path: '/api/leaves/deleteLeaveById/7' },
   { name: 'list payrolls', invoke: () => TestBed.inject(PayrollService).list(), method: 'GET', path: '/api/payroll/getAllPayrolls' },
   { name: 'get payroll', invoke: () => TestBed.inject(PayrollService).get(15), method: 'GET', path: '/api/payroll/getPayroll/15' },
@@ -463,20 +463,24 @@ describe('Backend API contract', () => {
     http.expectOne(`${environment.apiBaseUrl}/api/leaves/getAllLeaves`).flush([]);
   });
 
-  it('blocks approval without an approver ID', () => {
+  it.each(['approve', 'reject'] as const)('can %s leave without a manual approver ID', (action) => {
     const component = TestBed.runInInjectionContext(() => new LeaveList());
-    component.approve(leaveRecord);
-    expect(component.approverId.touched).toBe(true);
-    http.expectNone((request) => request.method === 'PUT');
+    component[action](leaveRecord);
+    const request = http.expectOne(`${environment.apiBaseUrl}/api/leaves/${action}Leave/7`);
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toBeNull();
+    expect(request.request.params.keys()).toEqual([]);
+    request.flush({ ...leaveRecord, status: action === 'approve' ? 'APPROVED' : 'REJECTED' });
+    http.expectOne(`${environment.apiBaseUrl}/api/leaves/getAllLeaves`).flush([]);
   });
 
-  it('uses the explicit approver ID when login has no user ID', () => {
-    const component = TestBed.runInInjectionContext(() => new LeaveList());
-    component.approverId.setValue(2);
-    component.approve(leaveRecord);
-    const request = http.expectOne(`${environment.apiBaseUrl}/api/leaves/approveLeave/7?approvedBy=2`);
-    expect(request.request.body).toBeNull();
-    request.flush({ ...leaveRecord, status: 'APPROVED' });
-    http.expectOne(`${environment.apiBaseUrl}/api/leaves/getAllLeaves`).flush([]);
+  it('does not render a required approver ID field or validation message', () => {
+    const fixture = TestBed.createComponent(LeaveList);
+    fixture.detectChanges();
+    http.expectOne(`${environment.apiBaseUrl}/api/leaves/getAllLeaves`).flush([leaveRecord]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#leave-approver')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Approver ID');
+    expect(fixture.nativeElement.textContent).not.toContain('Enter a valid approver ID');
   });
 });

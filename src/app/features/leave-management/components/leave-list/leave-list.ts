@@ -27,10 +27,6 @@ export class LeaveList implements OnInit {
 
   readonly employeeFilter = this.fb.control<number | null>(null);
 
-  readonly approverId = this.fb.control<number | null>(null, [
-    Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/),
-  ]);
-
   readonly form = this.fb.nonNullable.group({
     employeeId: [0, [Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/)]],
     leaveType: [''],
@@ -149,20 +145,10 @@ export class LeaveList implements OnInit {
   }
 
   private decide(row: LeaveResponse, action: 'approve' | 'reject'): void {
-    const approvedBy = this.auth.userId ?? this.approverId.value;
-    if (approvedBy === null || !Number.isInteger(approvedBy) || approvedBy < 1) {
-      this.approverId.markAsTouched();
-      this.messages.add({
-        severity: 'error',
-        summary: 'Approver required',
-        detail: 'Enter a valid approver ID.',
-      });
-      return;
-    }
     const request$ =
       action === 'approve'
-        ? this.leaveService.approve(row.id, approvedBy)
-        : this.leaveService.reject(row.id, approvedBy);
+        ? this.leaveService.approve(row.id)
+        : this.leaveService.reject(row.id);
 
     request$.subscribe({
       next: () => {
