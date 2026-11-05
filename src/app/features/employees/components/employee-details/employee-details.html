@@ -16,15 +16,42 @@
   } @else if (employee(); as employee) {
     <p-card>
       <dl class="details-grid">
-        <dt>Employee ID</dt><dd>{{ employee.employeeId }}</dd>
-        <dt>Employee code</dt><dd>{{ employee.employeeCode }}</dd>
-        <dt>Name</dt><dd>{{ employee.firstName }} {{ employee.lastName }}</dd>
-        <dt>Email</dt><dd>{{ employee.email }}</dd>
-        <dt>Phone</dt><dd>{{ employee.phone }}</dd>
-        <dt>Department</dt><dd>{{ employee.department }}</dd>
-        <dt>Designation</dt><dd>{{ employee.designation }}</dd>
-        <dt>Salary</dt><dd>{{ employee.salary | number: '1.2-2' }}</dd>
-        <dt>Joining date</dt><dd>{{ employee.joiningDate }}</dd>
+        <div class="detail-field">
+          <dt>Employee ID</dt>
+          <dd>{{ employee.employeeId }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Employee code</dt>
+          <dd>{{ employee.employeeCode }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Name</dt>
+          <dd>{{ employee.firstName }} {{ employee.lastName }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Email</dt>
+          <dd>{{ employee.email }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Phone</dt>
+          <dd>{{ employee.phone }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Department</dt>
+          <dd>{{ employee.department }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Designation</dt>
+          <dd>{{ employee.designation }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Salary</dt>
+          <dd>{{ employee.salary | number: '1.2-2' }}</dd>
+        </div>
+        <div class="detail-field">
+          <dt>Joining date</dt>
+          <dd>{{ employee.joiningDate }}</dd>
+        </div>
       </dl>
     </p-card>
   }

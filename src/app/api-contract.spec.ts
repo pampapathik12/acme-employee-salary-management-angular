@@ -334,6 +334,15 @@ describe('Backend API contract', () => {
     const details = fixture.nativeElement.querySelector('dl') as HTMLDListElement;
     expect(details.querySelectorAll('dd')[0].textContent).toBe('4');
     expect(details.querySelectorAll('dd')[1].textContent).toBe('EMP-00000002');
+    const fields = Array.from(details.querySelectorAll('.detail-field'));
+    expect(fields).toHaveLength(9);
+    expect(fields.map((field) => field.querySelector('dt')?.textContent)).toEqual([
+      'Employee ID', 'Employee code', 'Name', 'Email', 'Phone', 'Department', 'Designation', 'Salary', 'Joining date',
+    ]);
+    for (const field of fields) {
+      expect(field.querySelectorAll('dt')).toHaveLength(1);
+      expect(field.querySelectorAll('dd')).toHaveLength(1);
+    }
   });
 
   it('keeps response-only employee identifiers out of update requests', () => {
