@@ -1,0 +1,100 @@
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>Attendance</h2>
+    <div class="toolbar-actions">
+      <p-inputnumber
+        [formControl]="employeeFilter"
+        placeholder="Employee ID"
+        [useGrouping]="false"
+        [min]="1"
+        inputStyleClass="w-full"
+      />
+      @if (employeeFilter.value !== null) {
+        <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilter()" />
+      }
+      <p-button label="Add attendance" icon="pi pi-plus" (onClick)="openCreate()" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  <p-table [value]="records()" [loading]="loading()" [paginator]="true" [rows]="10" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th style="width: 6rem">ID</th>
+        <th>Name</th>
+        <th>Department</th>
+        <th>Designation</th>
+        <th style="width: 10rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.firstName }} {{ row.lastName }}</td>
+        <td>{{ row.department || '—' }}</td>
+        <td>{{ row.designation || '—' }}</td>
+        <td>
+          <div class="row-actions">
+            <p-button icon="pi pi-pencil" [text]="true" pTooltip="Edit" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" pTooltip="Delete" (onClick)="confirmDelete(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="5">No attendance records found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="dialogHeader()"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '40rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
+    <div class="form-field">
+      <label for="att-firstName">First name</label>
+      <input pInputText id="att-firstName" formControlName="firstName" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-lastName">Last name</label>
+      <input pInputText id="att-lastName" formControlName="lastName" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-email">Email</label>
+      <input pInputText id="att-email" type="email" formControlName="email" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-phone">Phone</label>
+      <input pInputText id="att-phone" formControlName="phone" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-department">Department</label>
+      <input pInputText id="att-department" formControlName="department" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-designation">Designation</label>
+      <input pInputText id="att-designation" formControlName="designation" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-salary">Salary</label>
+      <p-inputnumber id="att-salary" formControlName="salary" [minFractionDigits]="2" [maxFractionDigits]="2" inputStyleClass="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="att-joiningDate">Joining date</label>
+      <p-datepicker id="att-joiningDate" formControlName="joiningDate" dateFormat="yy-mm-dd" [showIcon]="true" inputStyleClass="w-full" />
+    </div>
+    <div class="form-actions" style="grid-column: 1 / -1">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving()" />
+    </div>
+  </form>
+</p-dialog>

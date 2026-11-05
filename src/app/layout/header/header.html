@@ -1,1 +1,9 @@
-<p>header works!</p>
+<header class="app-header">
+  <div class="user-info">
+    <span class="user-email">{{ auth.email() }}</span>
+    @if (auth.role()) {
+      <p-tag [value]="auth.role()!" severity="info" />
+    }
+  </div>
+  <p-button label="Logout" icon="pi pi-sign-out" severity="secondary" [outlined]="true" (onClick)="logout()" />
+</header>

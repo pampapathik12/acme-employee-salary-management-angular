@@ -1,1 +1,57 @@
-<p>employee-list works!</p>
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>Employees</h2>
+    <div class="toolbar-actions">
+      <input pInputText type="text" placeholder="Search" (input)="table.filterGlobal($any($event.target).value, 'contains')" />
+      <p-button label="Add employee" icon="pi pi-plus" (onClick)="add()" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  <p-table
+    #table
+    [value]="employees()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [globalFilterFields]="['firstName', 'lastName', 'email', 'department', 'designation']"
+    dataKey="id"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="firstName">Name <p-sorticon field="firstName" /></th>
+        <th pSortableColumn="email">Email <p-sorticon field="email" /></th>
+        <th pSortableColumn="department">Department <p-sorticon field="department" /></th>
+        <th pSortableColumn="designation">Designation <p-sorticon field="designation" /></th>
+        <th pSortableColumn="salary">Salary <p-sorticon field="salary" /></th>
+        <th pSortableColumn="joiningDate">Joined <p-sorticon field="joiningDate" /></th>
+        <th style="width: 12rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-employee>
+      <tr>
+        <td>{{ employee.firstName }} {{ employee.lastName }}</td>
+        <td>{{ employee.email }}</td>
+        <td>{{ employee.department }}</td>
+        <td>{{ employee.designation }}</td>
+        <td>{{ employee.salary | number: '1.2-2' }}</td>
+        <td>{{ employee.joiningDate }}</td>
+        <td>
+          <div class="row-actions">
+            <p-button icon="pi pi-eye" [text]="true" pTooltip="View" (onClick)="view(employee)" />
+            <p-button icon="pi pi-pencil" [text]="true" pTooltip="Edit" (onClick)="edit(employee)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" pTooltip="Delete" (onClick)="confirmDelete(employee)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7">No employees found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

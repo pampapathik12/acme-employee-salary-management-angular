@@ -1,1 +1,28 @@
-<p>dashboard works!</p>
+<div class="dashboard">
+  <h2>Welcome{{ email() ? ', ' + email() : '' }}</h2>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  @if (loading()) {
+    <p-progressspinner ariaLabel="Loading" styleClass="spinner" />
+  } @else {
+    <div class="card-grid">
+      @for (card of visibleCards(); track card.feature) {
+        <p-card styleClass="summary-card">
+          <div class="summary-card-body">
+            <i [class]="card.icon"></i>
+            <div>
+              <div class="summary-label">{{ card.label }}</div>
+              <div class="summary-value">{{ counts()[card.feature] ?? '-' }}</div>
+            </div>
+          </div>
+          <p-button label="Open" [text]="true" [routerLink]="card.route" />
+        </p-card>
+      } @empty {
+        <p>No modules are available for your role.</p>
+      }
+    </div>
+  }
+</div>

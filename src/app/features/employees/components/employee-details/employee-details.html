@@ -1,1 +1,29 @@
-<p>employee-details works!</p>
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>Employee details</h2>
+    <div class="toolbar-actions">
+      <p-button label="Back" icon="pi pi-arrow-left" severity="secondary" [outlined]="true" (onClick)="back()" />
+      <p-button label="Edit" icon="pi pi-pencil" (onClick)="edit()" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  @if (loading()) {
+    <p-progressspinner ariaLabel="Loading" />
+  } @else if (employee(); as employee) {
+    <p-card>
+      <dl class="details-grid">
+        <dt>Name</dt><dd>{{ employee.firstName }} {{ employee.lastName }}</dd>
+        <dt>Email</dt><dd>{{ employee.email }}</dd>
+        <dt>Phone</dt><dd>{{ employee.phone }}</dd>
+        <dt>Department</dt><dd>{{ employee.department }}</dd>
+        <dt>Designation</dt><dd>{{ employee.designation }}</dd>
+        <dt>Salary</dt><dd>{{ employee.salary | number: '1.2-2' }}</dd>
+        <dt>Joining date</dt><dd>{{ employee.joiningDate }}</dd>
+      </dl>
+    </p-card>
+  }
+</div>

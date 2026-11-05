@@ -1,1 +1,82 @@
-<p>employee-form works!</p>
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>{{ isEdit() ? 'Edit employee' : 'Add employee' }}</h2>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="firstName">First name *</label>
+        <input pInputText id="firstName" formControlName="firstName" class="w-full" />
+        @if (hasError('firstName')) { <small class="p-error">First name is required.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="lastName">Last name *</label>
+        <input pInputText id="lastName" formControlName="lastName" class="w-full" />
+        @if (hasError('lastName')) { <small class="p-error">Last name is required.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="email">Email *</label>
+        <input pInputText id="email" type="email" formControlName="email" class="w-full" />
+        @if (hasError('email')) { <small class="p-error">Enter a valid email.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="phone">Phone</label>
+        <input pInputText id="phone" formControlName="phone" class="w-full" />
+        @if (hasError('phone')) { <small class="p-error">Enter a valid phone number.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="department">Department *</label>
+        <input pInputText id="department" formControlName="department" class="w-full" />
+        @if (hasError('department')) { <small class="p-error">Department is required.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="designation">Designation *</label>
+        <input pInputText id="designation" formControlName="designation" class="w-full" />
+        @if (hasError('designation')) { <small class="p-error">Designation is required.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="salary">Salary *</label>
+        <p-inputnumber
+          inputId="salary"
+          formControlName="salary"
+          mode="decimal"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="2"
+          [min]="0"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+        @if (hasError('salary')) { <small class="p-error">Salary is required.</small> }
+      </div>
+
+      <div class="form-field">
+        <label for="joiningDate">Joining date *</label>
+        <p-datepicker
+          inputId="joiningDate"
+          formControlName="joiningDate"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          styleClass="w-full"
+          inputStyleClass="w-full"
+        />
+        @if (hasError('joiningDate')) { <small class="p-error">Joining date is required.</small> }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving() || loading()" />
+    </div>
+  </form>
+</div>

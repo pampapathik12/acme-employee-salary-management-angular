@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LeaveList } from './components/leave-list/leave-list';
 
-const routes: Routes = [];
+const routes: Routes = [{ path: '', component: LeaveList }];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

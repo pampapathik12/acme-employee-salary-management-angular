@@ -1,0 +1,69 @@
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>Salaries</h2>
+    <div class="toolbar-actions">
+      <p-inputnumber
+        [formControl]="employeeFilter"
+        placeholder="Employee ID"
+        [useGrouping]="false"
+        [min]="1"
+        inputStyleClass="w-full"
+      />
+      @if (employeeFilter.value !== null) {
+        <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilter()" />
+      }
+      <p-button label="Add salary" icon="pi pi-plus" (onClick)="openCreate()" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  <p-table [value]="salaries()" [loading]="loading()" [paginator]="true" [rows]="10" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th style="width: 8rem">ID</th>
+        <th>Salary</th>
+        <th style="width: 10rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.salary | number: '1.2-2' }}</td>
+        <td>
+          <div class="row-actions">
+            <p-button icon="pi pi-pencil" [text]="true" pTooltip="Edit" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" pTooltip="Delete" (onClick)="confirmDelete(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="3">No salary records found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="dialogHeader()"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="save()" class="form-field">
+    <label for="salary">Salary *</label>
+    <input pInputText id="salary" type="number" formControlName="salary" min="0" step="0.01" class="w-full" />
+    @if (form.controls.salary.touched && form.controls.salary.invalid) {
+      <small class="p-error">Enter a salary of 0 or more.</small>
+    }
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving()" />
+    </div>
+  </form>
+</p-dialog>

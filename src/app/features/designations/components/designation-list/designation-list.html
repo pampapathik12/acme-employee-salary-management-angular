@@ -1,0 +1,57 @@
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>Designations</h2>
+    <p-button label="Add designation" icon="pi pi-plus" (onClick)="openCreate()" />
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  <p-table [value]="designations()" [loading]="loading()" [paginator]="true" [rows]="10" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th style="width: 8rem">ID</th>
+        <th>Designation</th>
+        <th style="width: 10rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.designation }}</td>
+        <td>
+          <div class="row-actions">
+            <p-button icon="pi pi-pencil" [text]="true" pTooltip="Edit" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" pTooltip="Delete" (onClick)="confirmDelete(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="3">No designations found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="dialogHeader()"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="form" (ngSubmit)="save()" class="form-field">
+    <label for="designation">Designation name *</label>
+    <input pInputText id="designation" formControlName="designation" class="w-full" />
+    @if (form.controls.designation.touched && form.controls.designation.invalid) {
+      <small class="p-error">Designation name is required (max 100 characters).</small>
+    }
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving()" />
+    </div>
+  </form>
+</p-dialog>

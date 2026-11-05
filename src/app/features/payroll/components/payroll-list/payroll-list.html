@@ -1,0 +1,112 @@
+<div class="page-container">
+  <div class="page-toolbar">
+    <h2>Payroll</h2>
+    <div class="toolbar-actions">
+      <p-inputnumber
+        [formControl]="employeeFilter"
+        placeholder="Employee ID"
+        [useGrouping]="false"
+        [min]="1"
+        inputStyleClass="w-full"
+      />
+      @if (employeeFilter.value !== null) {
+        <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilter()" />
+      }
+      <p-button label="Generate payroll" icon="pi pi-cog" (onClick)="openGenerate()" />
+    </div>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [closable]="false">{{ error() }}</p-message>
+  }
+
+  <p-table [value]="records()" [loading]="loading()" [paginator]="true" [rows]="10" dataKey="payrollId">
+    <ng-template #header>
+      <tr>
+        <th style="width: 6rem">ID</th>
+        <th>Employee</th>
+        <th>Department</th>
+        <th class="text-right">Basic</th>
+        <th class="text-right">Allowances</th>
+        <th class="text-right">Deductions</th>
+        <th class="text-right">Net</th>
+        <th>Status</th>
+        <th>Paid on</th>
+        <th style="width: 6rem">Actions</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-row>
+      <tr>
+        <td>{{ row.payrollId }}</td>
+        <td>{{ row.employeeName }} <small>(#{{ row.employeeId }})</small></td>
+        <td>{{ row.department || '—' }}</td>
+        <td class="text-right">{{ row.basicSalary | number: '1.2-2' }}</td>
+        <td class="text-right">{{ row.allowances | number: '1.2-2' }}</td>
+        <td class="text-right">{{ row.deductions | number: '1.2-2' }}</td>
+        <td class="text-right">{{ row.netSalary | number: '1.2-2' }}</td>
+        <td>
+          <p-tag [value]="row.paymentStatus" [severity]="row.paymentStatus === 'PAID' ? 'success' : 'warn'" />
+        </td>
+        <td>{{ row.paymentDate || '—' }}</td>
+        <td>
+          <div class="row-actions">
+            <p-button icon="pi pi-pencil" [text]="true" pTooltip="Change payment status" (onClick)="openStatus(row)" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="10">No payroll records found.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  header="Generate payroll"
+  [visible]="generateVisible()"
+  (visibleChange)="generateVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="generateForm" (ngSubmit)="generate()" class="form-grid">
+    <div class="form-field">
+      <label for="gen-employeeId">Employee ID *</label>
+      <p-inputnumber id="gen-employeeId" formControlName="employeeId" [useGrouping]="false" [min]="1" inputStyleClass="w-full" />
+    </div>
+    <div class="form-field">
+      <label for="gen-periodId">Payroll period ID *</label>
+      <p-inputnumber id="gen-periodId" formControlName="payrollPeriodId" [useGrouping]="false" [min]="1" inputStyleClass="w-full" />
+    </div>
+    <div class="form-actions" style="grid-column: 1 / -1">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="generateVisible.set(false)" />
+      <p-button type="submit" label="Generate" icon="pi pi-cog" [loading]="generating()" [disabled]="generating()" />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  header="Payment status"
+  [visible]="statusVisible()"
+  (visibleChange)="statusVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '24rem' }"
+>
+  <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="form-field">
+    <label for="status-select">Status</label>
+    <p-select
+      id="status-select"
+      formControlName="paymentStatus"
+      [options]="paymentStatuses"
+      optionLabel="label"
+      optionValue="value"
+      appendTo="body"
+      styleClass="w-full"
+    />
+    <div class="form-actions">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="statusVisible.set(false)" />
+      <p-button type="submit" label="Update" icon="pi pi-check" [loading]="updatingStatus()" [disabled]="updatingStatus()" />
+    </div>
+  </form>
+</p-dialog>
