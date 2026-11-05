@@ -16,6 +16,16 @@
     </div>
   </div>
 
+  @if (auth.canAccess('employees') && auth.userId === null) {
+    <div class="form-field">
+      <label for="leave-approver">Approver ID *</label>
+      <input pInputText id="leave-approver" type="number" [formControl]="approverId" min="1" step="1" class="w-full" />
+      @if (approverId.touched && approverId.invalid) {
+        <small class="p-error">Enter a valid approver ID.</small>
+      }
+    </div>
+  }
+
   @if (error()) {
     <p-message severity="error" [closable]="false">{{ error() }}</p-message>
   }
@@ -25,8 +35,12 @@
       <tr>
         <th style="width: 6rem">ID</th>
         <th>Name</th>
-        <th>Department</th>
-        <th>Designation</th>
+        <th>Employee ID</th>
+        <th>Leave type ID</th>
+        <th>Start date</th>
+        <th>End date</th>
+        <th>Reason</th>
+        <th>Status</th>
         <th style="width: 14rem">Actions</th>
       </tr>
     </ng-template>
@@ -34,8 +48,12 @@
       <tr>
         <td>{{ row.id }}</td>
         <td>{{ row.firstName }} {{ row.lastName }}</td>
-        <td>{{ row.department || '—' }}</td>
-        <td>{{ row.designation || '—' }}</td>
+        <td>{{ row.employeeId }}</td>
+        <td>{{ row.relatedTypeId }}</td>
+        <td>{{ row.startDate }}</td>
+        <td>{{ row.endDate }}</td>
+        <td>{{ row.reason }}</td>
+        <td>{{ row.status }}</td>
         <td>
           <div class="row-actions">
             @if (auth.canAccess('employees')) {
@@ -50,7 +68,7 @@
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="5">No leave requests found.</td>
+        <td colspan="9">No leave requests found.</td>
       </tr>
     </ng-template>
   </p-table>
@@ -65,40 +83,44 @@
 >
   <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
     <div class="form-field">
-      <label for="leave-firstName">First name</label>
-      <input pInputText id="leave-firstName" formControlName="firstName" class="w-full" />
+      <label for="leave-employeeId">Employee ID *</label>
+      <input pInputText id="leave-employeeId" type="number" formControlName="employeeId" min="1" step="1" required class="w-full" />
+      @if (form.controls.employeeId.touched && form.controls.employeeId.invalid) {
+        <small class="p-error">Enter a valid employee ID.</small>
+      }
     </div>
     <div class="form-field">
-      <label for="leave-lastName">Last name</label>
-      <input pInputText id="leave-lastName" formControlName="lastName" class="w-full" />
+      <label for="leave-type">Leave type</label>
+      <input pInputText id="leave-type" formControlName="leaveType" class="w-full" />
     </div>
     <div class="form-field">
-      <label for="leave-email">Email</label>
-      <input pInputText id="leave-email" type="email" formControlName="email" class="w-full" />
+      <label for="leave-typeId">Leave type ID</label>
+      <input pInputText id="leave-typeId" type="number" formControlName="leaveTypeId" min="1" step="1" class="w-full" />
+      @if (form.touched && form.hasError('leaveTypeRequired')) {
+        <small class="p-error">Leave type or leave type ID is required.</small>
+      }
+      @if (form.controls.leaveTypeId.touched && form.controls.leaveTypeId.invalid) {
+        <small class="p-error">Enter a valid leave type ID.</small>
+      }
     </div>
     <div class="form-field">
-      <label for="leave-phone">Phone</label>
-      <input pInputText id="leave-phone" formControlName="phone" class="w-full" />
+      <label for="leave-startDate">Start date *</label>
+      <input pInputText id="leave-startDate" type="date" formControlName="startDate" required class="w-full" />
     </div>
     <div class="form-field">
-      <label for="leave-department">Department</label>
-      <input pInputText id="leave-department" formControlName="department" class="w-full" />
+      <label for="leave-endDate">End date *</label>
+      <input pInputText id="leave-endDate" type="date" formControlName="endDate" [min]="form.controls.startDate.value" required class="w-full" />
+      @if (form.touched && form.hasError('dateRange')) {
+        <small class="p-error">End date must be on or after start date.</small>
+      }
     </div>
     <div class="form-field">
-      <label for="leave-designation">Designation</label>
-      <input pInputText id="leave-designation" formControlName="designation" class="w-full" />
-    </div>
-    <div class="form-field">
-      <label for="leave-salary">Salary</label>
-      <p-inputnumber id="leave-salary" formControlName="salary" [minFractionDigits]="2" [maxFractionDigits]="2" inputStyleClass="w-full" />
-    </div>
-    <div class="form-field">
-      <label for="leave-joiningDate">Joining date</label>
-      <p-datepicker id="leave-joiningDate" formControlName="joiningDate" dateFormat="yy-mm-dd" [showIcon]="true" inputStyleClass="w-full" />
+      <label for="leave-reason">Reason *</label>
+      <input pInputText id="leave-reason" formControlName="reason" required class="w-full" />
     </div>
     <div class="form-actions" style="grid-column: 1 / -1">
       <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
-      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving()" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving() || form.invalid" />
     </div>
   </form>
 </p-dialog>

@@ -1,4 +1,15 @@
-export type PaymentStatus = 'PENDING' | 'PAID';
+export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED';
+
+export interface PayrollPeriodRequest {
+  periodName: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+}
+
+export interface PayrollPeriod extends PayrollPeriodRequest {
+  id: number;
+}
 
 export interface Payroll {
   payrollId: number;

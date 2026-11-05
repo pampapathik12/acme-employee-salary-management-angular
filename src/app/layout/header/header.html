@@ -5,5 +5,5 @@
       <p-tag [value]="auth.role()!" severity="info" />
     }
   </div>
-  <p-button label="Logout" icon="pi pi-sign-out" severity="secondary" [outlined]="true" (onClick)="logout()" />
+  <p-button label="Logout" icon="pi pi-sign-out" severity="secondary" [outlined]="true" [loading]="auth.loggingOut()" [disabled]="auth.loggingOut()" (onClick)="logout()" />
 </header>

@@ -2,37 +2,61 @@ import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Api } from '../../../core/services/api';
 import { API_PATHS } from '../../../core/constants/api.constants';
-import { EmployeeRequest, EmployeeResponse } from '../../../core/models/employee.model';
+
+export interface LeaveRequest {
+  employeeId: number;
+  leaveType?: string;
+  leaveTypeId?: number;
+  startDate: string;
+  endDate: string;
+  reason: string;
+}
+
+export interface LeaveResponse {
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
+  employeeId: number;
+  relatedTypeId: number;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: string;
+}
 
 @Service()
 export class LeaveService {
   private readonly api = inject(Api);
 
-  list(): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(API_PATHS.leaves);
+  list(): Observable<LeaveResponse[]> {
+    return this.api.get<LeaveResponse[]>(`${API_PATHS.leaves}/getAllLeaves`);
   }
 
-  listForEmployee(employeeId: number): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(`${API_PATHS.leaves}/employee/${employeeId}`);
+  get(id: number): Observable<LeaveResponse> {
+    return this.api.get<LeaveResponse>(`${API_PATHS.leaves}/getLeave/${id}`);
   }
 
-  create(body: EmployeeRequest): Observable<EmployeeResponse> {
-    return this.api.post<EmployeeResponse>(API_PATHS.leaves, body);
+  listForEmployee(employeeId: number): Observable<LeaveResponse[]> {
+    return this.api.get<LeaveResponse[]>(`${API_PATHS.leaves}/getLeavesByEmployeeId/${employeeId}`);
   }
 
-  update(id: number, body: EmployeeRequest): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.leaves}/${id}`, body);
+  create(body: LeaveRequest): Observable<LeaveResponse> {
+    return this.api.post<LeaveResponse>(`${API_PATHS.leaves}/applyLeave`, body);
   }
 
-  approve(id: number, approvedBy: number): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.leaves}/${id}/approve`, null, { approvedBy });
+  update(id: number, body: LeaveRequest): Observable<LeaveResponse> {
+    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/updateLeave/${id}`, body);
   }
 
-  reject(id: number, approvedBy: number): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.leaves}/${id}/reject`, null, { approvedBy });
+  approve(id: number, approvedBy: number): Observable<LeaveResponse> {
+    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/approveLeave/${id}`, null, { approvedBy });
+  }
+
+  reject(id: number, approvedBy: number): Observable<LeaveResponse> {
+    return this.api.put<LeaveResponse>(`${API_PATHS.leaves}/rejectLeave/${id}`, null, { approvedBy });
   }
 
   delete(id: number): Observable<void> {
-    return this.api.delete(`${API_PATHS.leaves}/${id}`);
+    return this.api.delete(`${API_PATHS.leaves}/deleteLeaveById/${id}`);
   }
 }

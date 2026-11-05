@@ -8,13 +8,13 @@ import { FeatureKey } from '../../../core/auth/constants/roles';
 export type DashboardCounts = Partial<Record<FeatureKey, number>>;
 
 const COUNTED_FEATURES: { feature: FeatureKey; path: string }[] = [
-  { feature: 'employees', path: API_PATHS.employees },
-  { feature: 'departments', path: API_PATHS.departments },
-  { feature: 'designations', path: API_PATHS.designations },
-  { feature: 'salaries', path: API_PATHS.salaries },
-  { feature: 'attendance', path: API_PATHS.attendance },
-  { feature: 'leaves', path: API_PATHS.leaves },
-  { feature: 'payroll', path: API_PATHS.payroll },
+  { feature: 'employees', path: `${API_PATHS.employees}/getAllEmployees` },
+  { feature: 'departments', path: `${API_PATHS.departments}/getAllDepartments` },
+  { feature: 'designations', path: `${API_PATHS.designations}/getAllDesignations` },
+  { feature: 'salaries', path: `${API_PATHS.salaries}/getAllSalaries` },
+  { feature: 'attendance', path: `${API_PATHS.attendance}/getAllAttendance` },
+  { feature: 'leaves', path: `${API_PATHS.leaves}/getAllLeaves` },
+  { feature: 'payroll', path: `${API_PATHS.payroll}/getAllPayrolls` },
 ];
 
 @Service()

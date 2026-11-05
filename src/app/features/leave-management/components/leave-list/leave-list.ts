@@ -1,10 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Auth } from '../../../../core/auth/services/auth';
-import { EmployeeRequest, EmployeeResponse, buildEmployeeRequest } from '../../../../core/models/employee.model';
-import { errorMessage, toIsoDate } from '../../../../core/utils/form.utils';
-import { LeaveService } from '../../services/leave';
+import { errorMessage } from '../../../../core/utils/form.utils';
+import { LeaveRequest, LeaveResponse, LeaveService } from '../../services/leave';
 
 @Component({
   selector: 'app-leave-list',
@@ -18,7 +17,7 @@ export class LeaveList implements OnInit {
   private readonly messages = inject(MessageService);
   readonly auth = inject(Auth);
 
-  readonly leaves = signal<EmployeeResponse[]>([]);
+  readonly leaves = signal<LeaveResponse[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly dialogVisible = signal(false);
@@ -28,15 +27,27 @@ export class LeaveList implements OnInit {
 
   readonly employeeFilter = this.fb.control<number | null>(null);
 
-  readonly form = this.fb.group({
-    firstName: [''],
-    lastName: [''],
-    email: [''],
-    phone: [''],
-    department: [''],
-    designation: [''],
-    salary: [null as number | null],
-    joiningDate: [null as Date | null],
+  readonly approverId = this.fb.control<number | null>(null, [
+    Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/),
+  ]);
+
+  readonly form = this.fb.nonNullable.group({
+    employeeId: [0, [Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/)]],
+    leaveType: [''],
+    leaveTypeId: this.fb.control<number | null>(null, [Validators.min(1), Validators.pattern(/^[0-9]+$/)]),
+    startDate: ['', Validators.required],
+    endDate: ['', Validators.required],
+    reason: ['', [Validators.required, Validators.pattern(/\S/)]],
+  }, {
+    validators: [
+      (control) => control.get('leaveType')?.value?.trim() || control.get('leaveTypeId')?.value
+        ? null : { leaveTypeRequired: true },
+      (control) => {
+        const startDate = control.get('startDate')?.value;
+        const endDate = control.get('endDate')?.value;
+        return startDate && endDate && endDate < startDate ? { dateRange: true } : null;
+      },
+    ],
   });
 
   ngOnInit(): void {
@@ -73,27 +84,33 @@ export class LeaveList implements OnInit {
     this.dialogVisible.set(true);
   }
 
-  openEdit(row: EmployeeResponse): void {
+  openEdit(row: LeaveResponse): void {
     this.editingId.set(row.id);
     this.form.reset({
-      firstName: row.firstName ?? '',
-      lastName: row.lastName ?? '',
-      email: row.email ?? '',
-      phone: row.phone ?? '',
-      department: row.department ?? '',
-      designation: row.designation ?? '',
-      salary: row.salary,
-      joiningDate: row.joiningDate ? new Date(row.joiningDate) : null,
+      employeeId: row.employeeId,
+      leaveType: '',
+      leaveTypeId: row.relatedTypeId,
+      startDate: row.startDate,
+      endDate: row.endDate,
+      reason: row.reason,
     });
     this.dialogVisible.set(true);
   }
 
   save(): void {
+    if (this.saving()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     const value = this.form.getRawValue();
-    const body: EmployeeRequest = buildEmployeeRequest({
-      ...value,
-      joiningDate: toIsoDate(value.joiningDate),
-    });
+    const body: LeaveRequest = {
+      employeeId: value.employeeId,
+      ...(value.leaveType.trim() ? { leaveType: value.leaveType.trim() } : { leaveTypeId: value.leaveTypeId! }),
+      startDate: value.startDate,
+      endDate: value.endDate,
+      reason: value.reason.trim(),
+    };
     const id = this.editingId();
     const request$ = id === null ? this.leaveService.create(body) : this.leaveService.update(id, body);
 
@@ -112,15 +129,15 @@ export class LeaveList implements OnInit {
     });
   }
 
-  approve(row: EmployeeResponse): void {
+  approve(row: LeaveResponse): void {
     this.decide(row, 'approve');
   }
 
-  reject(row: EmployeeResponse): void {
+  reject(row: LeaveResponse): void {
     this.decide(row, 'reject');
   }
 
-  confirmDelete(row: EmployeeResponse): void {
+  confirmDelete(row: LeaveResponse): void {
     this.confirmation.confirm({
       header: 'Delete leave',
       message: `Delete leave record #${row.id}?`,
@@ -131,13 +148,14 @@ export class LeaveList implements OnInit {
     });
   }
 
-  private decide(row: EmployeeResponse, action: 'approve' | 'reject'): void {
-    const approvedBy = this.auth.userId;
-    if (approvedBy === null) {
+  private decide(row: LeaveResponse, action: 'approve' | 'reject'): void {
+    const approvedBy = this.auth.userId ?? this.approverId.value;
+    if (approvedBy === null || !Number.isInteger(approvedBy) || approvedBy < 1) {
+      this.approverId.markAsTouched();
       this.messages.add({
         severity: 'error',
-        summary: 'Missing user id',
-        detail: 'Your login response has no user id, so the approver cannot be recorded.',
+        summary: 'Approver required',
+        detail: 'Enter a valid approver ID.',
       });
       return;
     }

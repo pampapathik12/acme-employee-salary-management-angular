@@ -1,9 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { EmployeeRequest, EmployeeResponse, buildEmployeeRequest } from '../../../../core/models/employee.model';
-import { errorMessage, toIsoDate } from '../../../../core/utils/form.utils';
-import { AttendanceService } from '../../services/attendance';
+import { errorMessage } from '../../../../core/utils/form.utils';
+import { AttendanceRequest, AttendanceResponse, AttendanceService } from '../../services/attendance';
 
 @Component({
   selector: 'app-attendance-list',
@@ -16,7 +15,7 @@ export class AttendanceList implements OnInit {
   private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
 
-  readonly records = signal<EmployeeResponse[]>([]);
+  readonly records = signal<AttendanceResponse[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly dialogVisible = signal(false);
@@ -26,15 +25,12 @@ export class AttendanceList implements OnInit {
 
   readonly employeeFilter = this.fb.control<number | null>(null);
 
-  readonly form = this.fb.group({
-    firstName: [''],
-    lastName: [''],
-    email: [''],
-    phone: [''],
-    department: [''],
-    designation: [''],
-    salary: [null as number | null],
-    joiningDate: [null as Date | null],
+  readonly form = this.fb.nonNullable.group({
+    employeeId: [0, [Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/)]],
+    attendanceDate: ['', Validators.required],
+    checkIn: ['', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/)]],
+    checkOut: ['', [Validators.required, Validators.pattern(/^([01][0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/)]],
+    status: ['PRESENT', [Validators.required, Validators.pattern(/\S/)]],
   });
 
   ngOnInit(): void {
@@ -71,27 +67,31 @@ export class AttendanceList implements OnInit {
     this.dialogVisible.set(true);
   }
 
-  openEdit(row: EmployeeResponse): void {
+  openEdit(row: AttendanceResponse): void {
     this.editingId.set(row.id);
     this.form.reset({
-      firstName: row.firstName ?? '',
-      lastName: row.lastName ?? '',
-      email: row.email ?? '',
-      phone: row.phone ?? '',
-      department: row.department ?? '',
-      designation: row.designation ?? '',
-      salary: row.salary,
-      joiningDate: row.joiningDate ? new Date(row.joiningDate) : null,
+      employeeId: row.employeeId,
+      attendanceDate: row.attendanceDate,
+      checkIn: row.checkIn,
+      checkOut: row.checkOut,
+      status: row.status,
     });
     this.dialogVisible.set(true);
   }
 
   save(): void {
+    if (this.saving()) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     const value = this.form.getRawValue();
-    const body: EmployeeRequest = buildEmployeeRequest({
+    const body: AttendanceRequest = {
       ...value,
-      joiningDate: toIsoDate(value.joiningDate),
-    });
+      checkIn: value.checkIn.length === 5 ? `${value.checkIn}:00` : value.checkIn,
+      checkOut: value.checkOut.length === 5 ? `${value.checkOut}:00` : value.checkOut,
+      status: value.status.trim(),
+    };
     const id = this.editingId();
     const request$ = id === null ? this.attendanceService.create(body) : this.attendanceService.update(id, body);
 
@@ -110,7 +110,7 @@ export class AttendanceList implements OnInit {
     });
   }
 
-  confirmDelete(row: EmployeeResponse): void {
+  confirmDelete(row: AttendanceResponse): void {
     this.confirmation.confirm({
       header: 'Delete attendance',
       message: `Delete attendance record #${row.id}?`,

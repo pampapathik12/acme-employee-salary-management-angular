@@ -2,25 +2,33 @@ import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Api } from '../../../core/services/api';
 import { API_PATHS } from '../../../core/constants/api.constants';
-import { EmployeeResponse, buildEmployeeRequest } from '../../../core/models/employee.model';
+
+export interface DesignationResponse {
+  id: number;
+  designation: string;
+}
 
 @Service()
 export class DesignationService {
   private readonly api = inject(Api);
 
-  list(): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(API_PATHS.designations);
+  list(): Observable<DesignationResponse[]> {
+    return this.api.get<DesignationResponse[]>(`${API_PATHS.designations}/getAllDesignations`);
   }
 
-  create(designation: string): Observable<EmployeeResponse> {
-    return this.api.post<EmployeeResponse>(API_PATHS.designations, buildEmployeeRequest({ designation }));
+  get(id: number): Observable<DesignationResponse> {
+    return this.api.get<DesignationResponse>(`${API_PATHS.designations}/getDesignation/${id}`);
   }
 
-  update(id: number, designation: string): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.designations}/${id}`, buildEmployeeRequest({ designation }));
+  create(designation: string): Observable<DesignationResponse> {
+    return this.api.post<DesignationResponse>(`${API_PATHS.designations}/addDesignation`, { designation });
+  }
+
+  update(id: number, designation: string): Observable<DesignationResponse> {
+    return this.api.put<DesignationResponse>(`${API_PATHS.designations}/updateDesignation/${id}`, { designation });
   }
 
   delete(id: number): Observable<void> {
-    return this.api.delete(`${API_PATHS.designations}/${id}`);
+    return this.api.delete(`${API_PATHS.designations}/deleteDesignationById/${id}`);
   }
 }

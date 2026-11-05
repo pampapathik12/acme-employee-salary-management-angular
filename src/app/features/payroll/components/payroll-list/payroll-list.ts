@@ -21,24 +21,45 @@ export class PayrollList implements OnInit {
 
   readonly generateVisible = signal(false);
   readonly generating = signal(false);
+  readonly loadingGenerateOptions = signal(false);
+  readonly generateError = signal<string | null>(null);
+  readonly periodOptions = signal<{ label: string; value: number }[]>([]);
   readonly statusVisible = signal(false);
   readonly updatingStatus = signal(false);
+  readonly periodVisible = signal(false);
+  readonly creatingPeriod = signal(false);
+  readonly periodError = signal<string | null>(null);
   private selected: Payroll | null = null;
 
   readonly paymentStatuses: { label: string; value: PaymentStatus }[] = [
     { label: 'Pending', value: 'PENDING' },
     { label: 'Paid', value: 'PAID' },
+    { label: 'Failed', value: 'FAILED' },
+    { label: 'Cancelled', value: 'CANCELLED' },
   ];
 
   readonly employeeFilter = this.fb.control<number | null>(null);
 
-  readonly generateForm = this.fb.nonNullable.group({
-    employeeId: [0, [Validators.required, Validators.min(1)]],
-    payrollPeriodId: [0, [Validators.required, Validators.min(1)]],
+  readonly generateForm = this.fb.group({
+    employeeId: this.fb.control<number | null>(null, [Validators.required, Validators.min(1), Validators.pattern(/^[0-9]+$/)]),
+    payrollPeriodId: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
   });
 
   readonly statusForm = this.fb.nonNullable.group({
     paymentStatus: ['PENDING' as PaymentStatus, Validators.required],
+  });
+
+  readonly periodForm = this.fb.nonNullable.group({
+    periodName: ['', [Validators.required, Validators.pattern(/\S/)]],
+    startDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]],
+    endDate: ['', [Validators.required, Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]],
+    status: ['', [Validators.required, Validators.pattern(/\S/)]],
+  }, {
+    validators: (control) => {
+      const startDate = control.get('startDate')?.value;
+      const endDate = control.get('endDate')?.value;
+      return startDate && endDate && endDate < startDate ? { dateRange: true } : null;
+    },
   });
 
   ngOnInit(): void {
@@ -69,17 +90,74 @@ export class PayrollList implements OnInit {
     this.employeeFilter.setValue(null);
   }
 
+  openCreatePeriod(): void {
+    this.periodForm.reset();
+    this.periodError.set(null);
+    this.periodVisible.set(true);
+  }
+
+  createPeriod(): void {
+    if (this.creatingPeriod()) return;
+    if (this.periodForm.invalid) {
+      this.periodForm.markAllAsTouched();
+      return;
+    }
+    const value = this.periodForm.getRawValue();
+    const body = { ...value, periodName: value.periodName.trim(), status: value.status.trim() };
+    this.creatingPeriod.set(true);
+    this.periodError.set(null);
+    this.payrollService.createPeriod(body).subscribe({
+      next: () => {
+        this.messages.add({ severity: 'success', summary: 'Added', detail: 'Payroll period added.' });
+        this.periodVisible.set(false);
+        this.creatingPeriod.set(false);
+      },
+      error: (err) => {
+        this.periodError.set(errorMessage(err, 'Could not add payroll period.'));
+        this.creatingPeriod.set(false);
+      },
+    });
+  }
+
   openGenerate(): void {
-    this.generateForm.reset({ employeeId: 0, payrollPeriodId: 0 });
+    this.generateForm.reset();
     this.generateVisible.set(true);
+    this.loadGenerateOptions();
+  }
+
+  loadGenerateOptions(): void {
+    if (this.loadingGenerateOptions()) return;
+    this.generateForm.reset();
+    this.periodOptions.set([]);
+    this.generateError.set(null);
+    this.loadingGenerateOptions.set(true);
+    this.payrollService.listPeriods().subscribe({
+      next: (periods) => {
+        this.periodOptions.set(periods.map((period) => ({
+          label: `${period.periodName} (${period.startDate} - ${period.endDate})`,
+          value: period.id,
+        })));
+        this.loadingGenerateOptions.set(false);
+      },
+      error: (err) => {
+        this.generateError.set(errorMessage(err, 'Could not load payroll periods.'));
+        this.loadingGenerateOptions.set(false);
+      },
+    });
   }
 
   generate(): void {
+    if (this.generating() || this.loadingGenerateOptions() || this.generateError()) return;
     if (this.generateForm.invalid) {
       this.generateForm.markAllAsTouched();
       return;
     }
     const { employeeId, payrollPeriodId } = this.generateForm.getRawValue();
+    if (employeeId === null || payrollPeriodId === null) return;
+    if (!this.periodOptions().some((option) => option.value === payrollPeriodId)) {
+      this.generateError.set('Select a payroll period from the available options.');
+      return;
+    }
     this.generating.set(true);
     this.payrollService.generate(employeeId, payrollPeriodId).subscribe({
       next: () => {
@@ -102,7 +180,7 @@ export class PayrollList implements OnInit {
   }
 
   updateStatus(): void {
-    if (!this.selected) {
+    if (!this.selected || this.statusForm.invalid || this.updatingStatus()) {
       return;
     }
     const { paymentStatus } = this.statusForm.getRawValue();

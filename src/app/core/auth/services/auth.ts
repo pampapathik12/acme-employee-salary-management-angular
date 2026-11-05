@@ -1,6 +1,6 @@
 import { Service, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, finalize, tap } from 'rxjs';
 import { Api } from '../../services/api';
 import { API_PATHS, SESSION_STORAGE_KEY } from '../../constants/api.constants';
 import { FEATURE_ROLES, FeatureKey } from '../constants/roles';
@@ -24,6 +24,7 @@ export class Auth {
   readonly session = this.sessionState.asReadonly();
   readonly role = computed(() => this.sessionState()?.role ?? null);
   readonly email = computed(() => this.sessionState()?.email ?? null);
+  readonly loggingOut = signal(false);
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.api.post<LoginResponse>(API_PATHS.login, request).pipe(
@@ -40,6 +41,21 @@ export class Auth {
   }
 
   logout(): void {
+    if (this.loggingOut()) return;
+    if (!this.token) {
+      this.clearSession();
+      return;
+    }
+    this.loggingOut.set(true);
+    this.api.post<void>(API_PATHS.logout).pipe(
+      finalize(() => {
+        this.clearSession();
+        this.loggingOut.set(false);
+      }),
+    ).subscribe({ error: () => {} });
+  }
+
+  clearSession(): void {
     localStorage.removeItem(SESSION_STORAGE_KEY);
     this.sessionState.set(null);
     this.router.navigate(['/login']);

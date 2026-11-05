@@ -2,29 +2,46 @@ import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Api } from '../../../core/services/api';
 import { API_PATHS } from '../../../core/constants/api.constants';
-import { EmployeeRequest, EmployeeResponse } from '../../../core/models/employee.model';
+
+export interface AttendanceRequest {
+  employeeId: number;
+  attendanceDate: string;
+  checkIn: string;
+  checkOut: string;
+  status: string;
+}
+
+export interface AttendanceResponse extends AttendanceRequest {
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
+}
 
 @Service()
 export class AttendanceService {
   private readonly api = inject(Api);
 
-  list(): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(API_PATHS.attendance);
+  list(): Observable<AttendanceResponse[]> {
+    return this.api.get<AttendanceResponse[]>(`${API_PATHS.attendance}/getAllAttendance`);
   }
 
-  listForEmployee(employeeId: number): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(`${API_PATHS.attendance}/employee/${employeeId}`);
+  get(id: number): Observable<AttendanceResponse> {
+    return this.api.get<AttendanceResponse>(`${API_PATHS.attendance}/getAttendance/${id}`);
   }
 
-  create(body: EmployeeRequest): Observable<EmployeeResponse> {
-    return this.api.post<EmployeeResponse>(API_PATHS.attendance, body);
+  listForEmployee(employeeId: number): Observable<AttendanceResponse[]> {
+    return this.api.get<AttendanceResponse[]>(`${API_PATHS.attendance}/getAttendanceByEmployeeId/${employeeId}`);
   }
 
-  update(id: number, body: EmployeeRequest): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.attendance}/${id}`, body);
+  create(body: AttendanceRequest): Observable<AttendanceResponse> {
+    return this.api.post<AttendanceResponse>(`${API_PATHS.attendance}/markAttendance`, body);
+  }
+
+  update(id: number, body: AttendanceRequest): Observable<AttendanceResponse> {
+    return this.api.put<AttendanceResponse>(`${API_PATHS.attendance}/updateAttendance/${id}`, body);
   }
 
   delete(id: number): Observable<void> {
-    return this.api.delete(`${API_PATHS.attendance}/${id}`);
+    return this.api.delete(`${API_PATHS.attendance}/deleteAttendanceById/${id}`);
   }
 }

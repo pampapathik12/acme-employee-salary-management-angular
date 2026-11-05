@@ -29,7 +29,7 @@ export class EmployeeForm implements OnInit {
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    phone: ['', Validators.pattern(/^[0-9+\-\s]{7,15}$/)],
+    phone: ['', [Validators.required, Validators.pattern(/^[0-9+\-\s]{7,15}$/)]],
     department: ['', Validators.required],
     designation: ['', Validators.required],
     salary: [null as number | null, [Validators.required, Validators.min(0)]],

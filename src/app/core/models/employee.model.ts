@@ -11,6 +11,8 @@ export interface EmployeeRequest {
 
 export interface EmployeeResponse extends EmployeeRequest {
   id: number;
+  employeeId: number;
+  employeeCode: string;
 }
 
 export function buildEmployeeRequest(partial: Partial<EmployeeRequest> = {}): EmployeeRequest {

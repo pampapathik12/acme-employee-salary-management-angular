@@ -49,6 +49,8 @@
     @if (form.controls.department.touched && form.controls.department.invalid) {
       <small class="p-error">Department name is required (max 100 characters).</small>
     }
+    <label for="departmentDescription">Description</label>
+    <input pInputText id="departmentDescription" formControlName="designation" class="w-full" />
     <div class="form-actions">
       <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
       <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving()" />

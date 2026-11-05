@@ -12,6 +12,7 @@
       @if (employeeFilter.value !== null) {
         <p-button label="Clear" severity="secondary" [outlined]="true" (onClick)="clearFilter()" />
       }
+      <p-button label="Add payroll period" icon="pi pi-calendar-plus" severity="secondary" [outlined]="true" (onClick)="openCreatePeriod()" />
       <p-button label="Generate payroll" icon="pi pi-cog" (onClick)="openGenerate()" />
     </div>
   </div>
@@ -45,7 +46,7 @@
         <td class="text-right">{{ row.deductions | number: '1.2-2' }}</td>
         <td class="text-right">{{ row.netSalary | number: '1.2-2' }}</td>
         <td>
-          <p-tag [value]="row.paymentStatus" [severity]="row.paymentStatus === 'PAID' ? 'success' : 'warn'" />
+          <p-tag [value]="row.paymentStatus" [severity]="row.paymentStatus === 'PAID' ? 'success' : row.paymentStatus === 'FAILED' ? 'danger' : row.paymentStatus === 'CANCELLED' ? 'secondary' : 'warn'" />
         </td>
         <td>{{ row.paymentDate || '—' }}</td>
         <td>
@@ -64,6 +65,57 @@
 </div>
 
 <p-dialog
+  header="Add payroll period"
+  [visible]="periodVisible()"
+  (visibleChange)="periodVisible.set($event)"
+  [modal]="true"
+  [closable]="!creatingPeriod()"
+  [closeOnEscape]="!creatingPeriod()"
+  [style]="{ width: '28rem' }"
+>
+  <form [formGroup]="periodForm" (ngSubmit)="createPeriod()" class="form-grid">
+    @if (periodError()) {
+      <p-message severity="error" [closable]="false" style="grid-column: 1 / -1">{{ periodError() }}</p-message>
+    }
+    <div class="form-field" style="grid-column: 1 / -1">
+      <label for="period-name">Period name *</label>
+      <input pInputText id="period-name" formControlName="periodName" required class="w-full" />
+      @if (periodForm.controls.periodName.touched && periodForm.controls.periodName.invalid) {
+        <small class="p-error">Period name is required.</small>
+      }
+    </div>
+    <div class="form-field">
+      <label for="period-start">Start date *</label>
+      <input pInputText id="period-start" type="date" formControlName="startDate" required class="w-full" />
+      @if (periodForm.controls.startDate.touched && periodForm.controls.startDate.invalid) {
+        <small class="p-error">Enter a valid start date.</small>
+      }
+    </div>
+    <div class="form-field">
+      <label for="period-end">End date *</label>
+      <input pInputText id="period-end" type="date" formControlName="endDate" [min]="periodForm.controls.startDate.value" required class="w-full" />
+      @if (periodForm.controls.endDate.touched && periodForm.controls.endDate.invalid) {
+        <small class="p-error">Enter a valid end date.</small>
+      }
+      @if (periodForm.touched && periodForm.hasError('dateRange')) {
+        <small class="p-error">End date must be on or after start date.</small>
+      }
+    </div>
+    <div class="form-field" style="grid-column: 1 / -1">
+      <label for="period-status">Status *</label>
+      <input pInputText id="period-status" formControlName="status" required class="w-full" />
+      @if (periodForm.controls.status.touched && periodForm.controls.status.invalid) {
+        <small class="p-error">Status is required.</small>
+      }
+    </div>
+    <div class="form-actions" style="grid-column: 1 / -1">
+      <p-button label="Cancel" severity="secondary" [outlined]="true" [disabled]="creatingPeriod()" (onClick)="periodVisible.set(false)" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="creatingPeriod()" [disabled]="creatingPeriod() || periodForm.invalid" />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
   header="Generate payroll"
   [visible]="generateVisible()"
   (visibleChange)="generateVisible.set($event)"
@@ -71,17 +123,53 @@
   [style]="{ width: '28rem' }"
 >
   <form [formGroup]="generateForm" (ngSubmit)="generate()" class="form-grid">
+    @if (generateError()) {
+      <div class="form-field" style="grid-column: 1 / -1">
+        <p-message severity="error" [closable]="false">{{ generateError() }}</p-message>
+        <p-button label="Retry" icon="pi pi-refresh" severity="secondary" [outlined]="true" [disabled]="loadingGenerateOptions()" (onClick)="loadGenerateOptions()" />
+      </div>
+    }
     <div class="form-field">
       <label for="gen-employeeId">Employee ID *</label>
-      <p-inputnumber id="gen-employeeId" formControlName="employeeId" [useGrouping]="false" [min]="1" inputStyleClass="w-full" />
+      <p-inputnumber
+        inputId="gen-employeeId"
+        formControlName="employeeId"
+        placeholder="Enter employee ID"
+        [useGrouping]="false"
+        [min]="1"
+        [maxFractionDigits]="0"
+        styleClass="w-full"
+        inputStyleClass="w-full"
+      />
+      @if (generateForm.controls.employeeId.touched && generateForm.controls.employeeId.invalid) {
+        <small class="p-error">Enter a valid employee ID.</small>
+      }
     </div>
     <div class="form-field">
-      <label for="gen-periodId">Payroll period ID *</label>
-      <p-inputnumber id="gen-periodId" formControlName="payrollPeriodId" [useGrouping]="false" [min]="1" inputStyleClass="w-full" />
+      <label for="gen-periodId">Payroll period *</label>
+      <p-select
+        inputId="gen-periodId"
+        formControlName="payrollPeriodId"
+        [options]="periodOptions()"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Select payroll period"
+        [filter]="true"
+        filterBy="label"
+        [showClear]="true"
+        [loading]="loadingGenerateOptions()"
+        emptyMessage="No payroll periods available"
+        emptyFilterMessage="No matching payroll periods"
+        appendTo="body"
+        styleClass="w-full"
+      />
+      @if (generateForm.controls.payrollPeriodId.touched && generateForm.controls.payrollPeriodId.invalid) {
+        <small class="p-error">Select a payroll period.</small>
+      }
     </div>
     <div class="form-actions" style="grid-column: 1 / -1">
       <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="generateVisible.set(false)" />
-      <p-button type="submit" label="Generate" icon="pi pi-cog" [loading]="generating()" [disabled]="generating()" />
+      <p-button type="submit" label="Generate" icon="pi pi-cog" [loading]="generating()" [disabled]="generating() || loadingGenerateOptions() || !!generateError() || generateForm.invalid || !periodOptions().length" />
     </div>
   </form>
 </p-dialog>

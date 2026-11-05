@@ -25,8 +25,11 @@
       <tr>
         <th style="width: 6rem">ID</th>
         <th>Name</th>
-        <th>Department</th>
-        <th>Designation</th>
+        <th>Employee ID</th>
+        <th>Date</th>
+        <th>Check-in</th>
+        <th>Check-out</th>
+        <th>Status</th>
         <th style="width: 10rem">Actions</th>
       </tr>
     </ng-template>
@@ -34,8 +37,11 @@
       <tr>
         <td>{{ row.id }}</td>
         <td>{{ row.firstName }} {{ row.lastName }}</td>
-        <td>{{ row.department || '—' }}</td>
-        <td>{{ row.designation || '—' }}</td>
+        <td>{{ row.employeeId }}</td>
+        <td>{{ row.attendanceDate }}</td>
+        <td>{{ row.checkIn }}</td>
+        <td>{{ row.checkOut }}</td>
+        <td>{{ row.status }}</td>
         <td>
           <div class="row-actions">
             <p-button icon="pi pi-pencil" [text]="true" pTooltip="Edit" (onClick)="openEdit(row)" />
@@ -46,7 +52,7 @@
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="5">No attendance records found.</td>
+        <td colspan="8">No attendance records found.</td>
       </tr>
     </ng-template>
   </p-table>
@@ -61,40 +67,31 @@
 >
   <form [formGroup]="form" (ngSubmit)="save()" class="form-grid">
     <div class="form-field">
-      <label for="att-firstName">First name</label>
-      <input pInputText id="att-firstName" formControlName="firstName" class="w-full" />
+      <label for="att-employeeId">Employee ID *</label>
+      <input pInputText id="att-employeeId" type="number" formControlName="employeeId" min="1" step="1" required class="w-full" />
+      @if (form.controls.employeeId.touched && form.controls.employeeId.invalid) {
+        <small class="p-error">Enter a valid employee ID.</small>
+      }
     </div>
     <div class="form-field">
-      <label for="att-lastName">Last name</label>
-      <input pInputText id="att-lastName" formControlName="lastName" class="w-full" />
+      <label for="att-date">Attendance date *</label>
+      <input pInputText id="att-date" type="date" formControlName="attendanceDate" required class="w-full" />
     </div>
     <div class="form-field">
-      <label for="att-email">Email</label>
-      <input pInputText id="att-email" type="email" formControlName="email" class="w-full" />
+      <label for="att-checkIn">Check-in *</label>
+      <input pInputText id="att-checkIn" type="time" step="1" formControlName="checkIn" required class="w-full" />
     </div>
     <div class="form-field">
-      <label for="att-phone">Phone</label>
-      <input pInputText id="att-phone" formControlName="phone" class="w-full" />
+      <label for="att-checkOut">Check-out *</label>
+      <input pInputText id="att-checkOut" type="time" step="1" formControlName="checkOut" required class="w-full" />
     </div>
     <div class="form-field">
-      <label for="att-department">Department</label>
-      <input pInputText id="att-department" formControlName="department" class="w-full" />
-    </div>
-    <div class="form-field">
-      <label for="att-designation">Designation</label>
-      <input pInputText id="att-designation" formControlName="designation" class="w-full" />
-    </div>
-    <div class="form-field">
-      <label for="att-salary">Salary</label>
-      <p-inputnumber id="att-salary" formControlName="salary" [minFractionDigits]="2" [maxFractionDigits]="2" inputStyleClass="w-full" />
-    </div>
-    <div class="form-field">
-      <label for="att-joiningDate">Joining date</label>
-      <p-datepicker id="att-joiningDate" formControlName="joiningDate" dateFormat="yy-mm-dd" [showIcon]="true" inputStyleClass="w-full" />
+      <label for="att-status">Status *</label>
+      <input pInputText id="att-status" formControlName="status" required class="w-full" />
     </div>
     <div class="form-actions" style="grid-column: 1 / -1">
       <p-button label="Cancel" severity="secondary" [outlined]="true" (onClick)="dialogVisible.set(false)" />
-      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving()" />
+      <p-button type="submit" label="Save" icon="pi pi-check" [loading]="saving()" [disabled]="saving() || form.invalid" />
     </div>
   </form>
 </p-dialog>

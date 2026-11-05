@@ -9,22 +9,22 @@ export class EmployeeService {
   private readonly api = inject(Api);
 
   list(): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(API_PATHS.employees);
+    return this.api.get<EmployeeResponse[]>(`${API_PATHS.employees}/getAllEmployees`);
   }
 
   get(id: number): Observable<EmployeeResponse> {
-    return this.api.get<EmployeeResponse>(`${API_PATHS.employees}/${id}`);
+    return this.api.get<EmployeeResponse>(`${API_PATHS.employees}/getEmployee/${id}`);
   }
 
   create(body: EmployeeRequest): Observable<EmployeeResponse> {
-    return this.api.post<EmployeeResponse>(API_PATHS.employees, body);
+    return this.api.post<EmployeeResponse>(`${API_PATHS.employees}/addEmployee`, body);
   }
 
   update(id: number, body: EmployeeRequest): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.employees}/${id}`, body);
+    return this.api.put<EmployeeResponse>(`${API_PATHS.employees}/updateEmployee/${id}`, body);
   }
 
   delete(id: number): Observable<void> {
-    return this.api.delete(`${API_PATHS.employees}/${id}`);
+    return this.api.delete(`${API_PATHS.employees}/deleteEmployeeById/${id}`);
   }
 }

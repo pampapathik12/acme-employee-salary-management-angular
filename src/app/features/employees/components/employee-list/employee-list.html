@@ -17,11 +17,13 @@
     [loading]="loading()"
     [paginator]="true"
     [rows]="10"
-    [globalFilterFields]="['firstName', 'lastName', 'email', 'department', 'designation']"
+    [globalFilterFields]="['employeeId', 'employeeCode', 'firstName', 'lastName', 'email', 'department', 'designation']"
     dataKey="id"
   >
     <ng-template #header>
       <tr>
+        <th pSortableColumn="employeeId">Employee ID <p-sorticon field="employeeId" /></th>
+        <th pSortableColumn="employeeCode">Employee code <p-sorticon field="employeeCode" /></th>
         <th pSortableColumn="firstName">Name <p-sorticon field="firstName" /></th>
         <th pSortableColumn="email">Email <p-sorticon field="email" /></th>
         <th pSortableColumn="department">Department <p-sorticon field="department" /></th>
@@ -33,6 +35,8 @@
     </ng-template>
     <ng-template #body let-employee>
       <tr>
+        <td>{{ employee.employeeId }}</td>
+        <td>{{ employee.employeeCode }}</td>
         <td>{{ employee.firstName }} {{ employee.lastName }}</td>
         <td>{{ employee.email }}</td>
         <td>{{ employee.department }}</td>
@@ -50,7 +54,7 @@
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="7">No employees found.</td>
+        <td colspan="9">No employees found.</td>
       </tr>
     </ng-template>
   </p-table>

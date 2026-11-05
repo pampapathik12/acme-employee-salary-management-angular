@@ -1,9 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { EmployeeResponse } from '../../../../core/models/employee.model';
 import { errorMessage } from '../../../../core/utils/form.utils';
-import { DesignationService } from '../../services/designation';
+import { DesignationResponse, DesignationService } from '../../services/designation';
 
 @Component({
   selector: 'app-designation-list',
@@ -16,7 +15,7 @@ export class DesignationList implements OnInit {
   private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
 
-  readonly designations = signal<EmployeeResponse[]>([]);
+  readonly designations = signal<DesignationResponse[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly dialogVisible = signal(false);
@@ -53,7 +52,7 @@ export class DesignationList implements OnInit {
     this.dialogVisible.set(true);
   }
 
-  openEdit(row: EmployeeResponse): void {
+  openEdit(row: DesignationResponse): void {
     this.editingId.set(row.id);
     this.form.reset({ designation: row.designation ?? '' });
     this.dialogVisible.set(true);
@@ -83,7 +82,7 @@ export class DesignationList implements OnInit {
     });
   }
 
-  confirmDelete(row: EmployeeResponse): void {
+  confirmDelete(row: DesignationResponse): void {
     this.confirmation.confirm({
       header: 'Delete designation',
       message: `Delete designation "${row.designation ?? ''}"?`,

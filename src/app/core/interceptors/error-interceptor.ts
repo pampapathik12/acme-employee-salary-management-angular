@@ -9,8 +9,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
       const isLoginCall = req.url.endsWith(API_PATHS.login);
-      if (err.status === 401 && !isLoginCall) {
-        auth.logout();
+      const isLogoutCall = req.url.endsWith(API_PATHS.logout);
+      if ((err.status === 401 || err.status === 403) && !isLoginCall && !isLogoutCall) {
+        auth.clearSession();
       }
       return throwError(() => err);
     }),

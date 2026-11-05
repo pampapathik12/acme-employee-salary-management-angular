@@ -1,9 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { EmployeeResponse } from '../../../../core/models/employee.model';
 import { errorMessage } from '../../../../core/utils/form.utils';
-import { DepartmentService } from '../../services/department';
+import { DepartmentResponse, DepartmentService } from '../../services/department';
 
 @Component({
   selector: 'app-department-list',
@@ -16,7 +15,7 @@ export class DepartmentList implements OnInit {
   private readonly confirmation = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
 
-  readonly departments = signal<EmployeeResponse[]>([]);
+  readonly departments = signal<DepartmentResponse[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly dialogVisible = signal(false);
@@ -26,6 +25,7 @@ export class DepartmentList implements OnInit {
 
   readonly form = this.fb.nonNullable.group({
     department: ['', [Validators.required, Validators.maxLength(100)]],
+    designation: [''],
   });
 
   ngOnInit(): void {
@@ -49,13 +49,13 @@ export class DepartmentList implements OnInit {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ department: '' });
+    this.form.reset({ department: '', designation: '' });
     this.dialogVisible.set(true);
   }
 
-  openEdit(row: EmployeeResponse): void {
+  openEdit(row: DepartmentResponse): void {
     this.editingId.set(row.id);
-    this.form.reset({ department: row.department ?? '' });
+    this.form.reset({ department: row.department, designation: '' });
     this.dialogVisible.set(true);
   }
 
@@ -65,8 +65,16 @@ export class DepartmentList implements OnInit {
       return;
     }
     const name = this.form.getRawValue().department.trim();
+    if (!name) {
+      this.form.controls.department.setErrors({ required: true });
+      this.form.controls.department.markAsTouched();
+      return;
+    }
+    const description = this.form.getRawValue().designation.trim();
     const id = this.editingId();
-    const request$ = id === null ? this.departmentService.create(name) : this.departmentService.update(id, name);
+    const request$ = id === null
+      ? this.departmentService.create(name, description || undefined)
+      : this.departmentService.update(id, name, this.form.controls.designation.dirty ? description : undefined);
 
     this.saving.set(true);
     request$.subscribe({
@@ -83,7 +91,7 @@ export class DepartmentList implements OnInit {
     });
   }
 
-  confirmDelete(row: EmployeeResponse): void {
+  confirmDelete(row: DepartmentResponse): void {
     this.confirmation.confirm({
       header: 'Delete department',
       message: `Delete department "${row.department ?? ''}"?`,

@@ -2,25 +2,39 @@ import { Service, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Api } from '../../../core/services/api';
 import { API_PATHS } from '../../../core/constants/api.constants';
-import { EmployeeResponse, buildEmployeeRequest } from '../../../core/models/employee.model';
+
+export interface DepartmentResponse {
+  id: number;
+  department: string;
+}
 
 @Service()
 export class DepartmentService {
   private readonly api = inject(Api);
 
-  list(): Observable<EmployeeResponse[]> {
-    return this.api.get<EmployeeResponse[]>(API_PATHS.departments);
+  list(): Observable<DepartmentResponse[]> {
+    return this.api.get<DepartmentResponse[]>(`${API_PATHS.departments}/getAllDepartments`);
   }
 
-  create(department: string): Observable<EmployeeResponse> {
-    return this.api.post<EmployeeResponse>(API_PATHS.departments, buildEmployeeRequest({ department }));
+  get(id: number): Observable<DepartmentResponse> {
+    return this.api.get<DepartmentResponse>(`${API_PATHS.departments}/getDepartment/${id}`);
   }
 
-  update(id: number, department: string): Observable<EmployeeResponse> {
-    return this.api.put<EmployeeResponse>(`${API_PATHS.departments}/${id}`, buildEmployeeRequest({ department }));
+  create(department: string, designation?: string): Observable<DepartmentResponse> {
+    return this.api.post<DepartmentResponse>(`${API_PATHS.departments}/addDepartment`, {
+      department,
+      ...(designation ? { designation } : {}),
+    });
+  }
+
+  update(id: number, department: string, designation?: string): Observable<DepartmentResponse> {
+    return this.api.put<DepartmentResponse>(`${API_PATHS.departments}/updateDepartment/${id}`, {
+      department,
+      ...(designation !== undefined ? { designation } : {}),
+    });
   }
 
   delete(id: number): Observable<void> {
-    return this.api.delete(`${API_PATHS.departments}/${id}`);
+    return this.api.delete(`${API_PATHS.departments}/deleteDepartmentById/${id}`);
   }
 }
